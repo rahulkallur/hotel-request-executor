@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -347,7 +348,15 @@ func init() {
 }
 
 func initProducer() sarama.SyncProducer {
-	brokerURL := constant.KafkaBrokerUrl
+	if os.Getenv("ENV") == "development" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Printf("Error loading .env file: %v", err)
+		} else {
+			log.Println("Successfully loaded .env file")
+		}
+	}
+	brokerURL := os.Getenv("KafkaBrokerUrl")
 	if brokerURL == "" {
 		log.Fatal("KAFKA_BROKER_URL environment variable is not set")
 	}
