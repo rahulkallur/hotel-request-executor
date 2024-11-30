@@ -156,7 +156,16 @@ func DataConsumer() {
 
 	// Setup a new consumer group
 	config := sarama.NewConfig()
-	config.Consumer.Return.Errors = true
+	config.Producer.Return.Errors = true
+	config.Producer.Return.Successes = true
+	config.Net.SASL.Enable = true
+
+	sarama.Logger = log.New(os.Stdout, "[sarama] ", log.LstdFlags)
+
+	config.Net.SASL.User = os.Getenv("KAFKA_USERNAME")
+	config.Net.SASL.Password = os.Getenv("KAFKA_PASSWORD")
+	config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient { return &XDGSCRAMClient{HashGeneratorFcn: SHA512} }
+	config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA512
 
 	currentTime := time.Now().UnixNano() / int64(time.Millisecond)
 	consumerGrp := "my-group" + strconv.FormatInt(currentTime, 10)
@@ -346,7 +355,16 @@ func initProducer() sarama.SyncProducer {
 	brokers := strings.Split(brokerURL, ",")
 
 	config := sarama.NewConfig()
+	config.Producer.Return.Errors = true
 	config.Producer.Return.Successes = true
+	config.Net.SASL.Enable = true
+
+	sarama.Logger = log.New(os.Stdout, "[sarama] ", log.LstdFlags)
+
+	config.Net.SASL.User = os.Getenv("KAFKA_USERNAME")
+	config.Net.SASL.Password = os.Getenv("KAFKA_PASSWORD")
+	config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient { return &XDGSCRAMClient{HashGeneratorFcn: SHA512} }
+	config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA512
 
 	producer, err := sarama.NewSyncProducer(brokers, config)
 	if err != nil {
